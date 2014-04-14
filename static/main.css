@@ -1,0 +1,35 @@
+body, html {
+  border: 0;
+  margin: 0;
+  height: 100%;
+}
+
+.lookup-table {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.lookup-table td.full {
+  background-repeat: no-repeat;
+  background-size: contain;
+  cursor: pointer;
+}
+
+.lookup-table td.empty {
+  color: #808080;
+  font-style: italic;
+}
+
+.lookup-table-popup {
+  display: none;
+}
+
+.lookup-table-popup img, .lookup-table-popup .mejs-video {
+  display: inline-block;
+}
+
