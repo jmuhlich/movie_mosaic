@@ -2,6 +2,7 @@ body, html {
   border: 0;
   margin: 0;
   height: 100%;
+  font-family: Verdana, Arial, Helvetica, sans-serif;
 }
 
 .lookup-table {
@@ -14,15 +15,27 @@ body, html {
   right: 0;
 }
 
-.lookup-table td.full {
+th {
+  /* Force equal column width. Fixed-width tables allocate column widths
+  proportionally to their content widths, so we'll explicitly set a width wider
+  than the widest possible content to ensure all columns are allocated equal
+  space. Note that if we make this *too* wide, the wider-content columns again
+  get assigned proportionally more space for some reason. */
+  width: 4em; 
+}
+
+.lookup-table td {
   background-repeat: no-repeat;
   background-size: contain;
+  background-position: center;
+}
+
+.lookup-table td.full {
   cursor: pointer;
 }
 
 .lookup-table td.empty {
-  color: #808080;
-  font-style: italic;
+  background-image: url(empty.png);
 }
 
 .lookup-table-popup {

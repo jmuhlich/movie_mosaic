@@ -66,10 +66,17 @@ def main(argv):
     cells = []
     mkdirp(args.output_path)
     for (row, column), image_filename in image_filenames.items():
-        movie_filename = movie_filenames[(row, column)]
         rc_address = rc_formatter(row, column)
+        try:
+            movie_filename = movie_filenames[(row, column)]
+        except KeyError:
+            print >>sys.stderr, "WARNING: Movie file missing for location", \
+                rc_address
+            movie_filename = None
         cells.append(Cell(row, column, rc_address, image_filename, movie_filename))
         for filename in image_filename, movie_filename:
+            if filename is None:
+                continue
             src_path = os.path.join(args.data_path, filename)
             dest_path = os.path.join(args.output_path, filename)
             shutil.copyfile(src_path, dest_path)
@@ -103,8 +110,6 @@ def main(argv):
     static_output_path = os.path.join(args.output_path, 'static')
     shutil.rmtree(static_output_path, ignore_errors=True)
     shutil.copytree(os.path.join(src_path, 'static'), static_output_path)
-
-    globals().update(locals()) # XXX
 
 
 def rc_formatter(row, column):

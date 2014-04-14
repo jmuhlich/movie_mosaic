@@ -16,7 +16,7 @@ jQuery(document).ready(
         show: 'blind',
         width: 'auto',
         height: 'auto',
-        position:  {my: 'left top', at: 'right top', of: this},
+        position:  {my: 'left top', at: 'left top ', of: window},
         open: function (event) {
           /*
           Implement semi-semantic lazy loading of media elements.
