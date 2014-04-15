@@ -24,6 +24,10 @@ def main(argv):
     argparser.add_argument('-o', '--output_path', default='./output',
                            help="Location for HTML output "
                            "(default: %(default)s)")
+    argparser.add_argument('-c', '--copy', action='store_true',
+                           help="Copy images and movies to output folder, "
+                           "rather than referencing them in-place "
+                           "(default: %(default)s)")
     argparser.add_argument('-m', '--movies-only', action='store_true',
                            help="Force generation of a movie-only mosaic, even "
                            "if images are present in data_path. "
@@ -86,14 +90,21 @@ def main(argv):
                     rc_address, "\n"
         cells.append(Cell(row, column, rc_address, image_filename, movie_filename))
 
-    ## Copy images and movies to the output path.
-    for cell in cells:
-        for filename in cell.image_filename, cell.movie_filename:
-            if filename is None:
-                continue
-            src_path = os.path.join(args.data_path, filename)
-            dest_path = os.path.join(args.output_path, filename)
-            shutil.copyfile(src_path, dest_path)
+    if args.copy:
+        ## Copy images and movies to the output path.
+        for cell in cells:
+            for filename in cell.image_filename, cell.movie_filename:
+                if filename is None:
+                    continue
+                src_path = os.path.join(args.data_path, filename)
+                dest_path = os.path.join(args.output_path, filename)
+                shutil.copyfile(src_path, dest_path)
+    else:
+        ## Transform filenames into absolute URLs.
+        cells = [Cell(cell.row, cell.column, cell.rc_address,
+                      absurl(cell.image_filename, args.data_path),
+                      absurl(cell.movie_filename, args.data_path))
+                 for cell in cells]
 
     ## Build the display table as a dict-of-dicts of Cells.
     row_min = min(c.row for c in cells)
@@ -141,6 +152,10 @@ def main(argv):
     print
     print "Output path: {}".format(os.path.abspath(args.output_path))
     print "  size: {:.1f} MB".format(output_size/1e6)
+    print
+    print "Media copied: {}".format('yes' if args.copy else 'no')
+    print "Mode: {}".format('movies only' if args.movies_only
+                            else 'images and movies')
 
 
 def rc_formatter(row, column):
@@ -152,6 +167,13 @@ def mkdirp(path):
         os.makedirs(path)
     except OSError, e:
         if e.errno != errno.EEXIST: raise
+
+
+def absurl(path, base):
+    if path is not None:
+        return 'file://' + os.path.abspath(os.path.join(base, path))
+    else:
+        return None
 
     
 if __name__ == '__main__':
