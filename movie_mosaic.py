@@ -21,15 +21,13 @@ def main(argv):
     argparser = argparse.ArgumentParser(
         description="Build an HTML gallery for an array of static images and "
         "associated movie clips.")
-    argparser.add_argument('-c', '--columns',
-                           help="Number of columns in the mosaic (can be "
-                           "auto-detected from the data)")
-    argparser.add_argument('-r', '--rows',
-                           help="Number of rows in the mosaic (can be "
-                           "auto-detected from the data)")
     argparser.add_argument('-o', '--output_path', default='./output',
-                           help="Location for HTML output (default: "
-                           "%(default)s)")
+                           help="Location for HTML output "
+                           "(default: %(default)s)")
+    argparser.add_argument('-m', '--movies-only', action='store_true',
+                           help="Force generation of a movie-only mosaic, even "
+                           "if images are present in data_path. "
+                           "(default: %(default)s)")
     argparser.add_argument('data_path',
                            help="Location of the images and movies")
     args = argparser.parse_args(argv)
@@ -66,19 +64,31 @@ def main(argv):
         # Exit early if any duplicate files were found.
         return 1
 
-    ## Copy images to the output path and build a list of Cell objects.
+    ## Build a list of Cell objects.
     cells = []
     mkdirp(args.output_path)
-    for (row, column), image_filename in image_filenames.items():
+    if args.movies_only:
+        filenames = movie_filenames
+    else:
+        filenames = image_filenames
+    for (row, column), filename in filenames.items():
         rc_address = rc_formatter(row, column)
-        try:
-            movie_filename = movie_filenames[(row, column)]
-        except KeyError:
-            print >>sys.stderr, "WARNING: Movie file missing for location", \
-                rc_address, "\n"
-            movie_filename = None
+        if args.movies_only:
+            image_filename = None
+            movie_filename = filename
+        else:
+            image_filename = filename
+            try:
+                movie_filename = movie_filenames[(row, column)]
+            except KeyError:
+                movie_filename = None
+                print >>sys.stderr, "WARNING: Movie file missing for location", \
+                    rc_address, "\n"
         cells.append(Cell(row, column, rc_address, image_filename, movie_filename))
-        for filename in image_filename, movie_filename:
+
+    ## Copy images and movies to the output path.
+    for cell in cells:
+        for filename in cell.image_filename, cell.movie_filename:
             if filename is None:
                 continue
             src_path = os.path.join(args.data_path, filename)
@@ -106,6 +116,7 @@ def main(argv):
     data_names = 'table cells row_numbers column_numbers'.split()
     # Take a "slice" of locals corresponding to the names in data_names.
     data = dict(zip(data_names, map(locals().get, data_names)))
+    data['movies_only'] = args.movies_only
     content = template.render(data)
     html_filename = os.path.join(args.output_path, 'index.html')
     with codecs.open(html_filename, 'w', 'utf-8') as out_file:

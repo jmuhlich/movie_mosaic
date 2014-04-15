@@ -1,6 +1,43 @@
 jQuery(document).ready(
   function ($) {
 
+    /* based on http://stackoverflow.com/a/5657492/2674930 */
+    var Set = function Set() {
+      var list = [];
+
+      var contains;
+      this.contains = contains = function(x) {
+        return list.indexOf(x) >= 0;
+      }
+
+      var put;
+      this.put = put = function(x) {
+        if (!contains(x)) {
+          list.push(x);
+        }
+        return this;
+      }
+
+      var remove;
+      this.remove = remove = function(x) {
+        var idx = list.indexOf(x);
+        if (idx >= 0) {
+          list.splice(idx,1);
+        }
+        return this;
+      }
+
+      var first;
+      this.first = first = function() {
+        return list.length === 0 ? undefined : list[0];
+      }
+
+      return this;
+    }
+
+    // Track currently-playing videos for sync code below.
+    var active_videos = Set();
+
     var $cells = $('.lookup-table td');
 
     $cells.click(function() {
@@ -72,8 +109,34 @@ jQuery(document).ready(
 
     });
 
-    // Quickly disable accessibility links.
-    $cells.children('a').removeAttr('href');
+    $('video', $cells).mediaelementplayer({
+      // Ensure the Flash fallback does antialiasing.
+      enablePluginSmoothing: true,
+      // Allow multiple videos playing at once.
+      pauseOtherPlayers: false,
+    }).bind({
+      // Handlers to keep videos synced
+      play: function() {
+        sync_to_master(this);
+        active_videos.put(this);
+      },
+      pause: function() {
+        active_videos.remove(this);
+      },
+      timeupdate: function() {
+        if (this.currentTime === 0 && active_videos.contains(this)) {
+          sync_to_master(this);
+        }
+      },
+    });
+
+    function sync_to_master(slave) {
+      var master = active_videos.first();
+      if (master !== slave && master !== undefined) {
+        slave.currentTime = master.currentTime;
+      }
+    }
+
   }
 );
 
