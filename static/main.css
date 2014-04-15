@@ -28,6 +28,7 @@ th {
   background-repeat: no-repeat;
   background-size: contain;
   background-position: center;
+  text-align: center;
 }
 
 .lookup-table td.full {
@@ -42,7 +43,7 @@ th {
   display: none;
 }
 
-.lookup-table-popup img, .lookup-table-popup .mejs-video {
+.lookup-table-popup img, .lookup-table-popup .mejs-video, .lookup-table .mejs-video {
   display: inline-block;
 }
 
