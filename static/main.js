@@ -109,12 +109,7 @@ jQuery(document).ready(
 
     });
 
-    $('video', $cells).mediaelementplayer({
-      // Ensure the Flash fallback does antialiasing.
-      enablePluginSmoothing: true,
-      // Allow multiple videos playing at once.
-      pauseOtherPlayers: false,
-    }).bind({
+    $('video', $cells).bind({
       // Handlers to keep videos synced
       play: function() {
         sync_to_master(this);
